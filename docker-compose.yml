@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  # Backend Service
+  backend:
+    build: ./backend
+    container_name: backend-service
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./backend/logs:/app/logs # ตั้ง volume เพื่อ persist logs [cite: 119]
+    networks:
+      - app-network # ตั้ง network app-network [cite: 118]
+
+  # Frontend Service (Quasar)
+  frontend:
+    build: 
+      context: ./frontend
+      # ส่งค่า URL ของ Backend ไปยัง Dockerfile ตอน Build
+      args:
+        - VITE_API_URL=http://backend:3000 
+    container_name: frontend-service
+    ports:
+      - "8080:80"
+    networks:
+      - app-network # ต้องเป็นชื่อ app-network ตามโจทย์ [cite: 118]
+networks:
+  app-network: # กำหนดเครือข่ายชื่อ app-network [cite: 118]
+    driver: bridge

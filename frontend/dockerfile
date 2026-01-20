@@ -1,0 +1,25 @@
+# Stage 1: Build stage
+FROM node:20-alpine AS build
+WORKDIR /app
+
+# รับค่า VITE_API_URL มาใช้ในตอน build (ถ้าจำเป็น)
+ARG VITE_API_URL=http://localhost:3000
+ENV VITE_API_URL=$VITE_API_URL
+
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+
+# Stage 2: Production stage (ใช้ Nginx เพื่อความเบาและรวดเร็ว)
+FROM nginx:stable-alpine
+WORKDIR /usr/share/nginx/html
+
+# คัดลอกไฟล์ที่ Build เสร็จแล้วจาก stage แรกมายัง nginx
+COPY --from=build /app/dist/spa .
+
+# (Optional) หากมีการทำ Routing แบบ SPA ต้องตั้งค่า nginx.conf เพิ่มเติม
+# ในกรณีนี้ใช้ค่าเริ่มต้นของ nginx ไปก่อนได้ครับ
+
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
