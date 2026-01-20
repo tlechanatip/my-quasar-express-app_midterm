@@ -1,0 +1,27 @@
+# Stage 1: Build stage
+FROM node:20-alpine AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+
+# Stage 2: Production stage
+FROM node:20-alpine
+WORKDIR /app
+
+# ติดตั้ง curl สำหรับใช้ทำ Healthcheck
+RUN apk add --no-cache curl
+
+# คัดลอกเฉพาะไฟล์ที่จำเป็นมาจาก build stage
+COPY --from=build /app/node_modules ./node_modules
+COPY . .
+
+# สร้างโฟลเดอร์ logs ภายใน container [cite: 103]
+RUN mkdir -p logs
+
+EXPOSE 3000
+
+# เพิ่ม Healthcheck ตรวจสอบที่ /api/demo [cite: 102]
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
+  CMD curl -f http://localhost:3000/api/demo || exit 1
+
+CMD ["node", "server.js"]
