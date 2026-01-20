@@ -1,3 +1,8 @@
+# Ignore dependency folders
 node_modules/
+
+# Ignore log folders
 backend/logs/
+
+# Ignore environment variables and secrets
 .env
